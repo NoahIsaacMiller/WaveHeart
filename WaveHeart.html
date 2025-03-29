@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wave Heart</title>
+</head>
+<body>
+    <canvas id="canvas"> </canvas>
+    <script>
+        // 缩放比
+        // 增大这个值可以放大爱心大小
+        let scale = 80;
+
+        // 坐标点数量, 增大这个点可以使得图像更平滑, 但会增加计算量, 影响性能
+        let dot_number = 10000;
+
+        // 波长控制因子 k
+        // 增大这个值可以缩短波长, 增加波峰波谷密度
+        let k = 8;
+
+        // 轨迹颜色: 颜色名, 16进制色值, rgb颜色值都可以
+        let color = "red";
+
+        // 背景色
+        let background_color = "#000000";
+
+        document.getElementsByTagName("body")[0].style.backgroundColor = background_color;
+        let canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        ctx.strokeStyle = color;
+        
+        // 计算纵坐标
+        function f(x, scale, k) {
+            // 定义域 [-sqrt(10), sqrt(10)]
+            return (
+                scale *
+                (Math.pow(Math.pow((1.0 / scale) * x, 2), 1.0 / 3) +
+                    Math.pow(10 - Math.pow((1.0 / scale) * x, 2), 0.5) *
+                    Math.sin((1.0 / scale) * k * Math.PI * x))
+            );
+        }
+
+        // 绘制心形
+        function drawWaveHeart(scale, k) {
+            let x = ((scale) => {
+                // 精度
+                let precision = (2 * Math.sqrt(10) * scale) / dot_number;
+                let _ = [];
+                for (
+                    let i = -Math.sqrt(10) * scale;
+                    i <= Math.sqrt(10) * scale;
+                    i += precision
+                )
+                    _.push(i);
+                return _;
+            })(scale);
+
+            let y = x.map((x) => f(x, scale, k));
+            ctx.beginPath();
+            ctx.moveTo(x[0], y[0]);
+            let xOffset = canvas.width / 2;
+            let yOffset = canvas.height / 2;
+
+            for (let i = 1; i < dot_number; i++) {
+                ctx.lineTo(xOffset + x[i], yOffset - y[i]);
+            }
+            ctx.stroke();
+        }
+
+        // 持续时间, 单位为毫秒
+        let duration = 10000;
+
+        // 步长
+        let step_length = k / duration;
+        function animate() {
+            // 动画
+            for (let i = 0; i < duration; i++) {
+                setTimeout(() => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    drawWaveHeart(scale, step_length * i);
+                }, i);
+            }
+            drawWaveHeart(scale, k);
+        }
+
+        setTimeout(() => {
+            animate();
+        }, 500);
+    </script>
+</body>
+
+</html>
